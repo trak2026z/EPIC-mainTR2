@@ -26,19 +26,21 @@ function Root() {
   useEffect(() => {
     setIsLoading(false);
     const stored = getFromStorage('data');
-    if (stored) {
+    if (Array.isArray(stored)) {
       setData(stored);
+    } else {
+      setData([]);
     }
   }, []);
 
-  const handleDate = async ({ target }) => {
+  const handleDate = async ({target}) => {
     setIsLoading(true);
     const parsed = parseDate(target.value);
     setSelectedDate(parsed);
     const fetched = await getNasaDataByDate(parsed.fullDate);
-    saveToStorage('data', fetched);
+    saveToStorage('data', Array.isArray(fetched) ? fetched : []);
     saveToStorage('currentDisplayedDate', parsed);
-    setData(fetched);
+    setData(Array.isArray(fetched) ? fetched : []);
     setCurrentDisplayedDate(parsed);
     setIsLoading(false);
   };
