@@ -36,9 +36,18 @@ function Root() {
     const parsed = parseDate(target.value);
     setSelectedDate(parsed);
     const fetched = await getNasaDataByDate(parsed.fullDate);
-    setData(fetched);
     saveToStorage('data', fetched);
+    saveToStorage('currentDisplayedDate', parsed);
+    setData(fetched);
+    setCurrentDisplayedDate(parsed);
     setIsLoading(false);
+  };
+
+  const getCurrentSlideDistance = () => {
+    if (!data || !data[currentSlideIndex]) return '';
+    const current = data[currentSlideIndex].dscovr_j2000_position;
+    const sun = data[currentSlideIndex].sun_j2000_position;
+    return distanceBetweenObjects(current, sun);
   };
 
   return (
@@ -48,7 +57,11 @@ function Root() {
         <StyledWrapper>
           <SwiperComponent on$dateSelect={handleDate} data={data} />
           <LeftComponent />
-          <CurrentSlideInfo data={data[currentSlideIndex]} />
+          <CurrentSlideInfo data={data[currentSlideIndex]}
+            distance={getCurrentSlideDistance()}
+            date={currentDisplayedDate}
+            isLoading={isLoading}
+          />
         </StyledWrapper>
       </StyledContainer>
     </ThemeProvider>
