@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getNasaDataByDate } from '../services/nasaService';
+import { parseDate } from '../utils/dateUtils';
+import { distanceBetweenObjects } from '../utils/mathUtils';
+import { saveToStorage, getFromStorage } from '../books/storage';
 import 'swiper/css';
 import 'views/App.css';
 import 'swiper/css/navigation';
@@ -13,31 +16,43 @@ import LeftComponent from 'components/organisms/LeftComponent/LeftComponent';
 import CurrentSlideInfo from 'components/molecues/CurrentSlideInfo/CurrentSlideInfo';
 
 function Root() {
-    const [data, setData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [currentDisplayedDate, setCurrentDisplayedDate] = useState(JSON.parse(window.localStorage.getItem('currentDisplayedDate')) || {});
-    const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(''
+); 
+  const [currentDisplayedDate, setCurrentDisplayedDate] = useState(getFromStorage('currentDisplayedDate') || {});
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-    useEffect(() => {
-        setIsLoading(false);
-        if (window.localStorage !== undefined) {
-            const data = window.localStorage.getItem('data');
-            if (data) {
-                setData(JSON.parse(data));
-            }
-        }
-    }, []);
+  useEffect(() => {
+    setIsLoading(false);
+    const stored = getFromStorage('data');
+    if (stored) {
+      setData(stored);
+    }
+  }, []);
 
-    const handleDate = async ({ target }) => {
-        const selectedDateValue = target.value;
-        setIsLoading(true);
-        const result = await getNasaDataByDate(selectedDateValue);
-        setData(result);
-        setIsLoading(false);
-    };
+  const handleDate = async ({ target }) => {
+    setIsLoading(true);
+    const parsed = parseDate(target.value);
+    setSelectedDate(parsed);
+    const fetched = await getNasaDataByDate(parsed.fullDate);
+    setData(fetched);
+    saveToStorage('data', fetched);
+    setIsLoading(false);
+  };
 
-    return /* XXX tutaj wyzea component layout */ null;
+  return (
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <StyledContainer>
+        <StyledWrapper>
+          <SwiperComponent on$dateSelect={handleDate} data={data} />
+          <LeftComponent />
+          <CurrentSlideInfo data={data[currentSlideIndex]} />
+        </StyledWrapper>
+      </StyledContainer>
+    </ThemeProvider>
+  );
 }
 
 export default Root;
