@@ -1,3 +1,6 @@
+# Architecture Diagram
+
+```mermaid
 graph TD
     A[index.js] --> B[views/Root.js]
     B --> C[components/templates]
